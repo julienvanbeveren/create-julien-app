@@ -10,8 +10,8 @@
     "build": "rollup -c",
     "watch": "rollup -c --watch"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": ["project setup", "typescript", "next.js", "express.js"],
+  "author": "Julien Van Beveren",
   "license": "ISC",
   "dependencies": {
     "chalk": "^4.1.2",
