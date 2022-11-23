@@ -3,19 +3,6 @@ import makeDir, { sync as makeDirSync } from "make-dir"
 import { deleteSync } from "del"
 import write from "write"
 
-export async function next2(location: string) {
-  makeDirSync(location)
-  // creating next app
-  // execSync("npm i create-next-app@latest", { stdio: 'inherit', cwd: location })
-  // execSync(`npx create-next-app@latest --ts --eslint --use-npm ${location}`, { stdio: 'inherit', cwd: "." })
-  // execSync("npm i sass -D", { stdio: "inherit", cwd: location })
-  // execSync("npm uninstall create-next-app@latest", { stdio: 'inherit', cwd: location })
-
-  // removing boilerplate
-  deleteSync([`${location}/pages/api`, `${location}/public/**`, `${location}/styles/Home.module.css`])
-  write.sync(`${location}/pages/test.tsx`, "hello world")
-}
-
 export async function next(location: string) {
   makeDirSync(location)
   write.sync(`${location}/pages/index.tsx`, indexFile)
@@ -32,8 +19,11 @@ export async function next(location: string) {
   write.sync(`${location}/next.config.js`, nextConfig)
   write.sync(`${location}/package.json`, packageJson)
   write.sync(`${location}/tsconfig.json`, tsConfig)
+  write.sync(`${location}/README.md`, readme)
   execSync("npm i", { stdio: 'inherit', cwd: location })
 }
+
+const readme = `this project was bootstrapped with create-julien-app`
 
 const tsConfig = `{
   "compilerOptions": {

@@ -18,16 +18,16 @@ export async function frontendHandler() {
         name: "Next.js",
         value: "Next.js"
       },
-      {
-        name: "React.js",
-        value: "React.js"
-      }
+      // {
+      //   name: "React.js",
+      //   value: "React.js"
+      // }
     ]
   })
   const folderName = await inquirer.prompt({
     name: "value",
     type: "input",
-    message: "Where should the frontend be saved?"
+    message: "Folder name? (put . to save in current folder)"
   })
 
   return { frameWork: frameWork.value, location: folderName.value }
