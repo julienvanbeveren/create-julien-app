@@ -41568,6 +41568,597 @@ async function frontendHandler() {
     return { frameWork: frameWork.value, location: folderName.value };
 }
 
+/*!
+ * file-name <https://github.com/jonschlinkert/file-name>
+ *
+ * Copyright (c) 2015-present, Jon Schlinkert.
+ * Licensed under the MIT License.
+ */
+const path$3 = require$$1__default["default"];
+const isObject = val => val !== null && typeof val === 'object' && !Array.isArray(val);
+const constants = {
+  REGEX_DARWIN: /( copy( [0-9]+)?)+$/i,
+  REGEX_DEFAULT: /(( copy)?( \([0-9]+\)|[0-9]+)?)+$/i,
+  REGEX_WIN32: /( \([0-9]+\))+$/i,
+  REGEX_NON_STANDARD: /( \.\(incomplete\)| \([0-9]+\)|[- ]+)+$/i,
+  REGEX_LINUX: /( \(((another|[0-9]+(th|st|nd|rd)) )?copy\))+$/i,
+  REGEX_RAW_NUMBERS: '| [0-9]+',
+  REGEX_SOURCE: ' \\((?:(another|[0-9]+(th|st|nd|rd)) )?copy\\)|copy( [0-9]+)?|\\.\\(incomplete\\)| \\([0-9]+\\)|[- ]+'
+};
+
+/**
+ * Remove trailing increments from the `dirname` and/or `stem` (basename
+ * without extension) of the given file path or object.
+ *
+ * @name strip
+ * @param {Sring|Object} `file` If the file is an object, it must have a `path` property.
+ * @param {Object} `options` See [available options](#options).
+ * @return {String|Object} Returns the same type that was given.
+ * @api public
+ */
+
+const strip$1 = (file, options) => {
+  if (!file) return file;
+  if (isObject(file) && file.path) {
+    return strip$1.file(file, options);
+  }
+  let filepath = strip$1.increment(file, options);
+  let extname = path$3.extname(filepath);
+  let dirname = strip$1.increment(path$3.dirname(filepath), options);
+  let stem = strip$1.increment(path$3.basename(filepath, extname), options);
+  return path$3.join(dirname, stem + extname);
+};
+
+/**
+ * Removes trailing increments from the given string.
+ *
+ * ```js
+ * console.log(strip.increment('foo (2)')); => 'foo'
+ * console.log(strip.increment('foo (copy)')); => 'foo'
+ * console.log(strip.increment('foo copy 2')); => 'foo'
+ * ```
+ * @name .increment
+ * @param {String} `input`
+ * @param {Object} `options` See [available options](#options).
+ * @return {String}
+ * @api public
+ */
+
+strip$1.increment = (input, options = {}) => {
+  if (typeof input === 'string' && input !== '') {
+    let suffix = options.removeRawNumbers === true ? constants.REGEX_RAW_NUMBERS : '';
+    let source = constants.REGEX_SOURCE + suffix;
+    return input.replace(new RegExp(`(${source})+$`, 'i'), '');
+  }
+  return input;
+};
+
+/**
+ * Removes trailing increments and returns the `dirname` of the given `filepath`.
+ *
+ * ```js
+ * console.log(strip.dirname('foo (2)/bar.txt')); => 'foo'
+ * console.log(strip.dirname('foo (copy)/bar.txt')); => 'foo'
+ * console.log(strip.dirname('foo copy 2/bar.txt')); => 'foo'
+ * ```
+ * @name .dirname
+ * @param {String} `filepath`
+ * @param {Object} `options` See [available options](#options).
+ * @return {String} Returns the `dirname` of the filepath, without increments.
+ * @api public
+ */
+
+strip$1.dirname = (filepath, options) => {
+  return strip$1.increment(path$3.dirname(filepath), options);
+};
+
+/**
+ * Removes trailing increments and returns the `stem` of the given `filepath`.
+ *
+ * ```js
+ * console.log(strip.stem('foo/bar (2).txt')); //=> 'bar'
+ * console.log(strip.stem('foo/bar (copy).txt')); //=> 'bar'
+ * console.log(strip.stem('foo/bar copy 2.txt')); //=> 'bar'
+ * console.log(strip.stem('foo/bar (2) copy.txt')); //=> 'bar'
+ * console.log(strip.stem('foo/bar (2) - copy.txt')); //=> 'bar'
+ * ```
+ * @name .stem
+ * @param {String} `filepath`
+ * @param {Object} `options` See [available options](#options).
+ * @return {String} Returns the `stem` of the filepath, without increments.
+ * @api public
+ */
+
+strip$1.stem = (filepath, options) => {
+  return strip$1.increment(path$3.basename(filepath, path$3.extname(filepath)), options);
+};
+
+/**
+ * Removes trailing increments and returns the `basename` of the given `filepath`.
+ *
+ * ```js
+ * console.log(strip.basename('foo/bar (2).txt')); //=> 'bar.txt'
+ * console.log(strip.basename('foo/bar (copy).txt')); //=> 'bar.txt'
+ * console.log(strip.basename('foo/bar copy 2.txt')); //=> 'bar.txt'
+ * console.log(strip.basename('foo/bar (2) copy.txt')); //=> 'bar.txt'
+ * console.log(strip.basename('foo/bar (2) - copy.txt')); //=> 'bar.txt'
+ * ```
+ * @name .basename
+ * @param {String} `filepath`
+ * @param {Object} `options` See [available options](#options).
+ * @return {String} Returns the `basename` of the filepath, without increments.
+ * @api public
+ */
+
+strip$1.basename = (filepath, options) => {
+  let extname = path$3.extname(filepath);
+  let stem = path$3.basename(filepath, extname);
+  return strip$1.increment(stem, options) + extname;
+};
+
+/**
+ * Removes trailing increments from the `dirname` and `stem` of the given `filepath`.
+ *
+ * ```js
+ * console.log(strip.path('foo copy/bar (2).txt')); //=> 'foo/bar.txt'
+ * console.log(strip.path('foo (2)/bar (copy).txt')); //=> 'foo/bar.txt'
+ * console.log(strip.path('foo (2)/bar copy 2.txt')); //=> 'foo/bar.txt'
+ * console.log(strip.path('foo copy/bar (2) copy.txt')); //=> 'foo/bar.txt'
+ * console.log(strip.path('foo copy/bar (2) - copy.txt')); //=> 'foo/bar.txt'
+ * ```
+ * @name .path
+ * @param {String} `filepath`
+ * @param {Object} `options` See [available options](#options).
+ * @return {String} Returns the `basename` of the filepath, without increments.
+ * @api public
+ */
+
+strip$1.path = (filepath, options) => {
+  let extname = path$3.extname(filepath);
+  let stem = strip$1.increment(path$3.basename(filepath, extname), options);
+  let dirname = strip$1.increment(path$3.dirname(filepath), options);
+  return path$3.join(dirname, stem + extname);
+};
+
+/**
+ * Removes trailing increments from the `dirname` and `stem` properties
+ * of the given `file`.
+ *
+ * ```js
+ * console.log(strip({ path: 'foo copy/bar (2).txt' }));
+ * //=> { path: 'foo/bar.txt', dir: 'foo', base: 'bar.txt', name: 'bar', ext: '.txt' }
+ * console.log(strip({ path: 'foo (2)/bar (copy).txt' }));
+ * //=> { path: 'foo/bar.txt', dir: 'foo', base: 'bar.txt', name: 'bar', ext: '.txt' }
+ * console.log(strip({ path: 'foo (2)/bar copy 2.txt' }));
+ * //=> { path: 'foo/bar.txt', dir: 'foo', base: 'bar.txt', name: 'bar', ext: '.txt' }
+ * console.log(strip({ path: 'foo copy/bar (2) copy.txt' }));
+ * //=> { path: 'foo/bar.txt', dir: 'foo', base: 'bar.txt', name: 'bar', ext: '.txt' }
+ * console.log(strip({ path: 'foo copy/bar (2) - copy.txt' }));
+ * //=> { path: 'foo/bar.txt', dir: 'foo', base: 'bar.txt', name: 'bar', ext: '.txt' }
+ * ```
+ * @name .file
+ * @param {String} `filepath`
+ * @param {Object} `options` See [available options](#options).
+ * @return {String} Returns the `basename` of the filepath, without increments.
+ * @api public
+ */
+
+strip$1.file = (file, options = {}) => {
+  if (!isObject(file)) return file;
+  if (!file.path) return file;
+  if (file.dirname && !file.dir) file.dir = file.dirname;
+  if (file.basename && !file.base) file.base = file.basename;
+  if (file.extname && !file.ext) file.ext = file.extname;
+  if (file.stem && !file.name) file.name = file.stem;
+  if (file.dir === void 0) file.dir = path$3.dirname(file.path);
+  if (file.ext === void 0) file.ext = path$3.extname(file.path);
+  if (file.base === void 0) file.base = path$3.basename(file.path);
+  if (file.name === void 0) file.name = path$3.basename(file.path, file.ext);
+  file.name = strip$1.increment(file.name, options);
+  file.dir = strip$1.increment(file.dir, options);
+  file.base = file.name + file.ext;
+  file.path = path$3.join(file.dir, file.base);
+  return file;
+};
+var stripFilenameIncrement = strip$1;
+
+const fs$2 = require$$0__default["default"];
+const path$2 = require$$1__default["default"];
+const strip = stripFilenameIncrement;
+const ordinals = ['th', 'st', 'nd', 'rd'];
+const ordinal = n => {
+  if (isNaN(n)) {
+    throw new TypeError('expected a number');
+  }
+  return ordinals[(n % 100 - 20) % 10] || ordinals[n % 100] || ordinals[0];
+};
+const toOrdinal = number => {
+  return `${Number(number)}${ordinal(Math.abs(number))}`;
+};
+const format = {
+  darwin(stem, n) {
+    if (n === 1) return `${stem} copy`;
+    if (n > 1) return `${stem} copy ${n}`;
+    return stem;
+  },
+  default: (stem, n) => n > 1 ? `${stem} (${n})` : stem,
+  win32: (stem, n) => n > 1 ? `${stem} (${n})` : stem,
+  windows: (stem, n) => format.win32(stem, n),
+  linux(stem, n) {
+    if (n === 0) return stem;
+    if (n === 1) return `${stem} (copy)`;
+    if (n === 2) return `${stem} (another copy)`;
+    return `${stem} (${toOrdinal(n)} copy)`;
+  }
+};
+
+/**
+ * The main export is a function that adds a trailing increment to
+ * the `stem` (basename without extension) of the given file path or object.
+ * ```js
+ * console.log(increment('foo/bar.txt', { platform: 'darwin' }));
+ * //=> foo/bar copy.txt
+ * console.log(increment('foo/bar.txt', { platform: 'linux' }));
+ * //=> foo/bar (copy).txt
+ * console.log(increment('foo/bar.txt', { platform: 'win32' }));
+ * //=> foo/bar (2).txt
+ * ```
+ * @name increment
+ * @param {String|Object} `file` If the file is an object, it must have a `path` property.
+ * @param {Object} `options` See [available options](#options).
+ * @return {String|Object} Returns a file of the same type that was given, with an increment added to the file name.
+ * @api public
+ */
+
+const increment$1 = (...args) => {
+  return typeof args[0] === 'string' ? increment$1.path(...args) : increment$1.file(...args);
+};
+
+/**
+ * Add a trailing increment to the given `filepath`.
+ *
+ * ```js
+ * console.log(increment.path('foo/bar.txt', { platform: 'darwin' }));
+ * //=> foo/bar copy.txt
+ * console.log(increment.path('foo/bar.txt', { platform: 'linux' }));
+ * //=> foo/bar (copy).txt
+ * console.log(increment.path('foo/bar.txt', { platform: 'win32' }));
+ * //=> foo/bar (2).txt
+ * ```
+ * @name .path
+ * @param {String} `filepath`
+ * @param {Object} `options` See [available options](#options).
+ * @return {String}
+ * @api public
+ */
+
+increment$1.path = (filepath, options = {}) => {
+  return path$2.format(increment$1.file(path$2.parse(filepath), options));
+};
+
+/**
+ * Add a trailing increment to the `file.base` of the given file object.
+ *
+ * ```js
+ * console.log(increment.file({ path: 'foo/bar.txt' }, { platform: 'darwin' }));
+ * //=> { path: 'foo/bar copy.txt', base: 'bar copy.txt' }
+ * console.log(increment.file({ path: 'foo/bar.txt' }, { platform: 'linux' }));
+ * //=> { path: 'foo/bar (copy).txt', base: 'bar (copy).txt' }
+ * console.log(increment.file({ path: 'foo/bar.txt' }, { platform: 'win32' }));
+ * //=> { path: 'foo/bar (2).txt', base: 'bar (2).txt' }
+ * ```
+ * @name .file
+ * @param {String|Object} `file` If passed as a string, the path will be parsed to create an object using `path.parse()`.
+ * @param {Object} `options` See [available options](#options).
+ * @return {Object} Returns an object.
+ * @api public
+ */
+
+increment$1.file = (file, options = {}) => {
+  if (typeof file === 'string') {
+    let temp = file;
+    file = path$2.parse(file);
+    file.path = temp;
+  }
+  file = {
+    ...file
+  };
+  if (file.path && Object.keys(file).length === 1) {
+    let temp = file.path;
+    file = path$2.parse(file.path);
+    file.path = temp;
+  }
+  if (file.dirname && !file.dir) file.dir = file.dirname;
+  if (file.basename && !file.base) file.base = file.basename;
+  if (file.extname && !file.ext) file.ext = file.extname;
+  if (file.stem && !file.name) file.name = file.stem;
+  let {
+    start = 1,
+    platform = process.platform
+  } = options;
+  let fn = options.increment || format[platform] || format.default;
+  if (start === 1 && (platform === 'win32' || platform === 'windows')) {
+    if (!options.increment) {
+      start++;
+    }
+  }
+  if (options.strip === true) {
+    file.name = strip.increment(file.name, options);
+    file.dir = strip.increment(file.dir, options);
+    file.base = file.name + file.ext;
+  }
+  if (options.fs === true) {
+    let name = file.name;
+    let dest = path$2.format(file);
+    while (fs$2.existsSync(dest)) {
+      file.base = fn(name, start++) + file.ext;
+      dest = path$2.format(file);
+    }
+  } else {
+    file.base = fn(file.name, start) + file.ext;
+  }
+  file.path = path$2.join(file.dir, file.base);
+  return file;
+};
+
+/**
+ * Returns an ordinal-suffix for the given number. This is used
+ * when creating increments for files on Linux.
+ *
+ * ```js
+ * const { ordinal } = require('add-filename-increment');
+ * console.log(ordinal(1)); //=> 'st'
+ * console.log(ordinal(2)); //=> 'nd'
+ * console.log(ordinal(3)); //=> 'rd'
+ * console.log(ordinal(110)); //=> 'th'
+ * ```
+ * @name .ordinal
+ * @param {Number} `num`
+ * @return {String}
+ * @api public
+ */
+
+increment$1.ordinal = ordinal;
+
+/**
+ * Returns an ordinal for the given number.
+ *
+ * ```js
+ * const { toOrdinal } = require('add-filename-increment');
+ * console.log(toOrdinal(1)); //=> '1st'
+ * console.log(toOrdinal(2)); //=> '2nd'
+ * console.log(toOrdinal(3)); //=> '3rd'
+ * console.log(toOrdinal(110)); //=> '110th'
+ * ```
+ * @name .toOrdinal
+ * @param {Number} `num`
+ * @return {String}
+ * @api public
+ */
+
+increment$1.toOrdinal = toOrdinal;
+var addFilenameIncrement = increment$1;
+
+const fs$1 = require$$0__default["default"];
+const path$1 = require$$1__default["default"];
+const increment = addFilenameIncrement;
+
+/**
+ * Asynchronously writes data to a file, replacing the file if it already
+ * exists and creating any intermediate directories if they don't already
+ * exist. Data can be a string or a buffer. Returns a promise if a callback
+ * function is not passed.
+ *
+ * ```js
+ * const write = require('write');
+ *
+ * // async/await
+ * (async () => {
+ *   await write('foo.txt', 'This is content...');
+ * })();
+ *
+ * // promise
+ * write('foo.txt', 'This is content...')
+ *   .then(() => {
+ *     // do stuff
+ *   });
+ *
+ * // callback
+ * write('foo.txt', 'This is content...', err => {
+ *   // do stuff with err
+ * });
+ * ```
+ * @name write
+ * @param {String} `filepath` file path.
+ * @param {String|Buffer|Uint8Array} `data` Data to write.
+ * @param {Object} `options` Options to pass to [fs.writeFile][writefile]
+ * @param {Function} `callback` (optional) If no callback is provided, a promise is returned.
+ * @returns {Object} Returns an object with the `path` and `contents` of the file that was written to the file system. This is useful for debugging when `options.increment` is used and the path might have been modified.
+ * @api public
+ */
+
+const write = (filepath, data, options, callback) => {
+  if (typeof options === 'function') {
+    callback = options;
+    options = {};
+  }
+  const opts = {
+    encoding: 'utf8',
+    ...options
+  };
+  const destpath = opts.increment ? incrementName(filepath, options) : filepath;
+  const result = {
+    path: destpath,
+    data
+  };
+  if (opts.overwrite === false && exists(filepath, destpath)) {
+    throw new Error('File already exists: ' + destpath);
+  }
+  const promise = mkdir(path$1.dirname(destpath), {
+    recursive: true,
+    ...options
+  }).then(() => {
+    return new Promise((resolve, reject) => {
+      fs$1.createWriteStream(destpath, opts).on('error', err => reject(err)).on('close', resolve).end(ensureNewline(data, opts));
+    });
+  });
+  if (typeof callback === 'function') {
+    promise.then(() => callback(null, result)).catch(callback);
+    return;
+  }
+  return promise.then(() => result);
+};
+
+/**
+ * The synchronous version of [write](#write). Returns undefined.
+ *
+ * ```js
+ * const write = require('write');
+ * write.sync('foo.txt', 'This is content...');
+ * ```
+ * @name .sync
+ * @param {String} `filepath` file path.
+ * @param {String|Buffer|Uint8Array} `data` Data to write.
+ * @param {Object} `options` Options to pass to [fs.writeFileSync][writefilesync]
+ * @returns {Object} Returns an object with the `path` and `contents` of the file that was written to the file system. This is useful for debugging when `options.increment` is used and the path might have been modified.
+ * @api public
+ */
+
+write.sync = (filepath, data, options) => {
+  if (typeof filepath !== 'string') {
+    throw new TypeError('expected filepath to be a string');
+  }
+  const opts = {
+    encoding: 'utf8',
+    ...options
+  };
+  const destpath = opts.increment ? incrementName(filepath, options) : filepath;
+  if (opts.overwrite === false && exists(filepath, destpath)) {
+    throw new Error('File already exists: ' + destpath);
+  }
+  mkdirSync(path$1.dirname(destpath), {
+    recursive: true,
+    ...options
+  });
+  fs$1.writeFileSync(destpath, ensureNewline(data, opts), opts);
+  return {
+    path: destpath,
+    data
+  };
+};
+
+/**
+ * Returns a new [WriteStream][writestream] object. Uses `fs.createWriteStream`
+ * to write data to a file, replacing the file if it already exists and creating
+ * any intermediate directories if they don't already exist. Data can be a string
+ * or a buffer.
+ *
+ * ```js
+ * const fs = require('fs');
+ * const write = require('write');
+ * fs.createReadStream('README.md')
+ *   .pipe(write.stream('a/b/c/other-file.md'))
+ *   .on('close', () => {
+ *     // do stuff
+ *   });
+ * ```
+ * @name .stream
+ * @param {String} `filepath` file path.
+ * @param {Object} `options` Options to pass to [fs.createWriteStream][wsoptions]
+ * @return {Stream} Returns a new [WriteStream][writestream] object. (See [Writable Stream][writable]).
+ * @api public
+ */
+
+write.stream = (filepath, options) => {
+  if (typeof filepath !== 'string') {
+    throw new TypeError('expected filepath to be a string');
+  }
+  const opts = {
+    encoding: 'utf8',
+    ...options
+  };
+  const destpath = opts.increment ? incrementName(filepath, options) : filepath;
+  if (opts.overwrite === false && exists(filepath, destpath)) {
+    throw new Error('File already exists: ' + filepath);
+  }
+  mkdirSync(path$1.dirname(destpath), {
+    recursive: true,
+    ...options
+  });
+  return fs$1.createWriteStream(destpath, opts);
+};
+
+/**
+ * Increment the filename if the file already exists and enabled by the user
+ */
+
+const incrementName = (destpath, options = {}) => {
+  if (options.increment === true) options.increment = void 0;
+  return increment(destpath, options);
+};
+
+/**
+ * Ensure newline at EOF if defined on options
+ */
+
+const ensureNewline = (data, options) => {
+  if (!options || options.newline !== true) return data;
+  if (typeof data !== 'string' && !isBuffer(data)) {
+    return data;
+  }
+
+  // Only call `.toString()` on the last character. This way,
+  // if data is a buffer, we don't need to stringify the entire
+  // buffer just to append a newline.
+  if (String(data.slice(-1)) !== '\n') {
+    if (typeof data === 'string') {
+      return data + '\n';
+    }
+    return data.concat(Buffer.from('\n'));
+  }
+  return data;
+};
+
+// if filepath !== destpath, that means the user has enabled
+// "increment", which has already checked the file system and
+// renamed the file to avoid conflicts, so we don't need to
+// check again.
+const exists = (filepath, destpath) => {
+  return filepath === destpath && fs$1.existsSync(filepath);
+};
+const mkdir = (dirname, options) => {
+  return new Promise(resolve => fs$1.mkdir(dirname, options, () => resolve()));
+};
+const mkdirSync = (dirname, options) => {
+  try {
+    fs$1.mkdirSync(dirname, options);
+  } catch (err) {/* do nothing */}
+};
+const isBuffer = data => {
+  if (data.constructor && typeof data.constructor.isBuffer === 'function') {
+    return data.constructor.isBuffer(data);
+  }
+  return false;
+};
+
+/**
+ * Expose `write`
+ */
+
+var write_1 = write;
+
+function createPackageJson(location, name, dependencies, devDependencies, scripts) {
+    const packageJson = JSON.stringify({
+        "name": name,
+        "version": "1.0.0",
+        "description": "",
+        "scripts": scripts,
+        "dependencies": dependencies,
+        "devDependencies": devDependencies
+    }, null, 2);
+    write_1.sync(`${location}/package.json`, packageJson);
+}
+
 var makeDir$1 = {exports: {}};
 
 var semver$1 = {exports: {}};
@@ -42918,8 +43509,8 @@ var semver$1 = {exports: {}};
   }
 })(semver$1, semver$1.exports);
 
-const fs$2 = require$$0__default["default"];
-const path$3 = require$$1__default["default"];
+const fs = require$$0__default["default"];
+const path = require$$1__default["default"];
 const {
   promisify
 } = require$$0__default$5["default"];
@@ -42930,7 +43521,7 @@ const useNativeRecursiveOption = semver.satisfies(process.version, '>=10.12.0');
 // https://github.com/libuv/libuv/pull/1088
 const checkPath = pth => {
   if (process.platform === 'win32') {
-    const pathHasInvalidWinCharacters = /[<>:"|?*]/.test(pth.replace(path$3.parse(pth).root, ''));
+    const pathHasInvalidWinCharacters = /[<>:"|?*]/.test(pth.replace(path.parse(pth).root, ''));
     if (pathHasInvalidWinCharacters) {
       const error = new Error(`Path contains invalid characters: ${pth}`);
       error.code = 'EINVAL';
@@ -42942,7 +43533,7 @@ const processOptions = options => {
   // https://github.com/sindresorhus/make-dir/issues/18
   const defaults = {
     mode: 0o777,
-    fs: fs$2
+    fs
   };
   return {
     ...defaults,
@@ -42964,8 +43555,8 @@ const makeDir = async (input, options) => {
   options = processOptions(options);
   const mkdir = promisify(options.fs.mkdir);
   const stat = promisify(options.fs.stat);
-  if (useNativeRecursiveOption && options.fs.mkdir === fs$2.mkdir) {
-    const pth = path$3.resolve(input);
+  if (useNativeRecursiveOption && options.fs.mkdir === fs.mkdir) {
+    const pth = path.resolve(input);
     await mkdir(pth, {
       mode: options.mode,
       recursive: true
@@ -42981,13 +43572,13 @@ const makeDir = async (input, options) => {
         throw error;
       }
       if (error.code === 'ENOENT') {
-        if (path$3.dirname(pth) === pth) {
+        if (path.dirname(pth) === pth) {
           throw permissionError(pth);
         }
         if (error.message.includes('null bytes')) {
           throw error;
         }
-        await make(path$3.dirname(pth));
+        await make(path.dirname(pth));
         return make(pth);
       }
       try {
@@ -43001,15 +43592,15 @@ const makeDir = async (input, options) => {
       return pth;
     }
   };
-  return make(path$3.resolve(input));
+  return make(path.resolve(input));
 };
 makeDir$1.exports = makeDir;
 var sync = makeDir$1.exports.sync = (input, options) => {
   checkPath(input);
   options = processOptions(options);
-  if (useNativeRecursiveOption && options.fs.mkdirSync === fs$2.mkdirSync) {
-    const pth = path$3.resolve(input);
-    fs$2.mkdirSync(pth, {
+  if (useNativeRecursiveOption && options.fs.mkdirSync === fs.mkdirSync) {
+    const pth = path.resolve(input);
+    fs.mkdirSync(pth, {
       mode: options.mode,
       recursive: true
     });
@@ -43023,13 +43614,13 @@ var sync = makeDir$1.exports.sync = (input, options) => {
         throw error;
       }
       if (error.code === 'ENOENT') {
-        if (path$3.dirname(pth) === pth) {
+        if (path.dirname(pth) === pth) {
           throw permissionError(pth);
         }
         if (error.message.includes('null bytes')) {
           throw error;
         }
-        make(path$3.dirname(pth));
+        make(path.dirname(pth));
         return make(pth);
       }
       try {
@@ -43042,745 +43633,174 @@ var sync = makeDir$1.exports.sync = (input, options) => {
     }
     return pth;
   };
-  return make(path$3.resolve(input));
+  return make(path.resolve(input));
 };
 
-/*!
- * file-name <https://github.com/jonschlinkert/file-name>
- *
- * Copyright (c) 2015-present, Jon Schlinkert.
- * Licensed under the MIT License.
- */
-const path$2 = require$$1__default["default"];
-const isObject = val => val !== null && typeof val === 'object' && !Array.isArray(val);
-const constants = {
-  REGEX_DARWIN: /( copy( [0-9]+)?)+$/i,
-  REGEX_DEFAULT: /(( copy)?( \([0-9]+\)|[0-9]+)?)+$/i,
-  REGEX_WIN32: /( \([0-9]+\))+$/i,
-  REGEX_NON_STANDARD: /( \.\(incomplete\)| \([0-9]+\)|[- ]+)+$/i,
-  REGEX_LINUX: /( \(((another|[0-9]+(th|st|nd|rd)) )?copy\))+$/i,
-  REGEX_RAW_NUMBERS: '| [0-9]+',
-  REGEX_SOURCE: ' \\((?:(another|[0-9]+(th|st|nd|rd)) )?copy\\)|copy( [0-9]+)?|\\.\\(incomplete\\)| \\([0-9]+\\)|[- ]+'
-};
-
-/**
- * Remove trailing increments from the `dirname` and/or `stem` (basename
- * without extension) of the given file path or object.
- *
- * @name strip
- * @param {Sring|Object} `file` If the file is an object, it must have a `path` property.
- * @param {Object} `options` See [available options](#options).
- * @return {String|Object} Returns the same type that was given.
- * @api public
- */
-
-const strip$1 = (file, options) => {
-  if (!file) return file;
-  if (isObject(file) && file.path) {
-    return strip$1.file(file, options);
-  }
-  let filepath = strip$1.increment(file, options);
-  let extname = path$2.extname(filepath);
-  let dirname = strip$1.increment(path$2.dirname(filepath), options);
-  let stem = strip$1.increment(path$2.basename(filepath, extname), options);
-  return path$2.join(dirname, stem + extname);
-};
-
-/**
- * Removes trailing increments from the given string.
- *
- * ```js
- * console.log(strip.increment('foo (2)')); => 'foo'
- * console.log(strip.increment('foo (copy)')); => 'foo'
- * console.log(strip.increment('foo copy 2')); => 'foo'
- * ```
- * @name .increment
- * @param {String} `input`
- * @param {Object} `options` See [available options](#options).
- * @return {String}
- * @api public
- */
-
-strip$1.increment = (input, options = {}) => {
-  if (typeof input === 'string' && input !== '') {
-    let suffix = options.removeRawNumbers === true ? constants.REGEX_RAW_NUMBERS : '';
-    let source = constants.REGEX_SOURCE + suffix;
-    return input.replace(new RegExp(`(${source})+$`, 'i'), '');
-  }
-  return input;
-};
-
-/**
- * Removes trailing increments and returns the `dirname` of the given `filepath`.
- *
- * ```js
- * console.log(strip.dirname('foo (2)/bar.txt')); => 'foo'
- * console.log(strip.dirname('foo (copy)/bar.txt')); => 'foo'
- * console.log(strip.dirname('foo copy 2/bar.txt')); => 'foo'
- * ```
- * @name .dirname
- * @param {String} `filepath`
- * @param {Object} `options` See [available options](#options).
- * @return {String} Returns the `dirname` of the filepath, without increments.
- * @api public
- */
-
-strip$1.dirname = (filepath, options) => {
-  return strip$1.increment(path$2.dirname(filepath), options);
-};
-
-/**
- * Removes trailing increments and returns the `stem` of the given `filepath`.
- *
- * ```js
- * console.log(strip.stem('foo/bar (2).txt')); //=> 'bar'
- * console.log(strip.stem('foo/bar (copy).txt')); //=> 'bar'
- * console.log(strip.stem('foo/bar copy 2.txt')); //=> 'bar'
- * console.log(strip.stem('foo/bar (2) copy.txt')); //=> 'bar'
- * console.log(strip.stem('foo/bar (2) - copy.txt')); //=> 'bar'
- * ```
- * @name .stem
- * @param {String} `filepath`
- * @param {Object} `options` See [available options](#options).
- * @return {String} Returns the `stem` of the filepath, without increments.
- * @api public
- */
-
-strip$1.stem = (filepath, options) => {
-  return strip$1.increment(path$2.basename(filepath, path$2.extname(filepath)), options);
-};
-
-/**
- * Removes trailing increments and returns the `basename` of the given `filepath`.
- *
- * ```js
- * console.log(strip.basename('foo/bar (2).txt')); //=> 'bar.txt'
- * console.log(strip.basename('foo/bar (copy).txt')); //=> 'bar.txt'
- * console.log(strip.basename('foo/bar copy 2.txt')); //=> 'bar.txt'
- * console.log(strip.basename('foo/bar (2) copy.txt')); //=> 'bar.txt'
- * console.log(strip.basename('foo/bar (2) - copy.txt')); //=> 'bar.txt'
- * ```
- * @name .basename
- * @param {String} `filepath`
- * @param {Object} `options` See [available options](#options).
- * @return {String} Returns the `basename` of the filepath, without increments.
- * @api public
- */
-
-strip$1.basename = (filepath, options) => {
-  let extname = path$2.extname(filepath);
-  let stem = path$2.basename(filepath, extname);
-  return strip$1.increment(stem, options) + extname;
-};
-
-/**
- * Removes trailing increments from the `dirname` and `stem` of the given `filepath`.
- *
- * ```js
- * console.log(strip.path('foo copy/bar (2).txt')); //=> 'foo/bar.txt'
- * console.log(strip.path('foo (2)/bar (copy).txt')); //=> 'foo/bar.txt'
- * console.log(strip.path('foo (2)/bar copy 2.txt')); //=> 'foo/bar.txt'
- * console.log(strip.path('foo copy/bar (2) copy.txt')); //=> 'foo/bar.txt'
- * console.log(strip.path('foo copy/bar (2) - copy.txt')); //=> 'foo/bar.txt'
- * ```
- * @name .path
- * @param {String} `filepath`
- * @param {Object} `options` See [available options](#options).
- * @return {String} Returns the `basename` of the filepath, without increments.
- * @api public
- */
-
-strip$1.path = (filepath, options) => {
-  let extname = path$2.extname(filepath);
-  let stem = strip$1.increment(path$2.basename(filepath, extname), options);
-  let dirname = strip$1.increment(path$2.dirname(filepath), options);
-  return path$2.join(dirname, stem + extname);
-};
-
-/**
- * Removes trailing increments from the `dirname` and `stem` properties
- * of the given `file`.
- *
- * ```js
- * console.log(strip({ path: 'foo copy/bar (2).txt' }));
- * //=> { path: 'foo/bar.txt', dir: 'foo', base: 'bar.txt', name: 'bar', ext: '.txt' }
- * console.log(strip({ path: 'foo (2)/bar (copy).txt' }));
- * //=> { path: 'foo/bar.txt', dir: 'foo', base: 'bar.txt', name: 'bar', ext: '.txt' }
- * console.log(strip({ path: 'foo (2)/bar copy 2.txt' }));
- * //=> { path: 'foo/bar.txt', dir: 'foo', base: 'bar.txt', name: 'bar', ext: '.txt' }
- * console.log(strip({ path: 'foo copy/bar (2) copy.txt' }));
- * //=> { path: 'foo/bar.txt', dir: 'foo', base: 'bar.txt', name: 'bar', ext: '.txt' }
- * console.log(strip({ path: 'foo copy/bar (2) - copy.txt' }));
- * //=> { path: 'foo/bar.txt', dir: 'foo', base: 'bar.txt', name: 'bar', ext: '.txt' }
- * ```
- * @name .file
- * @param {String} `filepath`
- * @param {Object} `options` See [available options](#options).
- * @return {String} Returns the `basename` of the filepath, without increments.
- * @api public
- */
-
-strip$1.file = (file, options = {}) => {
-  if (!isObject(file)) return file;
-  if (!file.path) return file;
-  if (file.dirname && !file.dir) file.dir = file.dirname;
-  if (file.basename && !file.base) file.base = file.basename;
-  if (file.extname && !file.ext) file.ext = file.extname;
-  if (file.stem && !file.name) file.name = file.stem;
-  if (file.dir === void 0) file.dir = path$2.dirname(file.path);
-  if (file.ext === void 0) file.ext = path$2.extname(file.path);
-  if (file.base === void 0) file.base = path$2.basename(file.path);
-  if (file.name === void 0) file.name = path$2.basename(file.path, file.ext);
-  file.name = strip$1.increment(file.name, options);
-  file.dir = strip$1.increment(file.dir, options);
-  file.base = file.name + file.ext;
-  file.path = path$2.join(file.dir, file.base);
-  return file;
-};
-var stripFilenameIncrement = strip$1;
-
-const fs$1 = require$$0__default["default"];
-const path$1 = require$$1__default["default"];
-const strip = stripFilenameIncrement;
-const ordinals = ['th', 'st', 'nd', 'rd'];
-const ordinal = n => {
-  if (isNaN(n)) {
-    throw new TypeError('expected a number');
-  }
-  return ordinals[(n % 100 - 20) % 10] || ordinals[n % 100] || ordinals[0];
-};
-const toOrdinal = number => {
-  return `${Number(number)}${ordinal(Math.abs(number))}`;
-};
-const format = {
-  darwin(stem, n) {
-    if (n === 1) return `${stem} copy`;
-    if (n > 1) return `${stem} copy ${n}`;
-    return stem;
-  },
-  default: (stem, n) => n > 1 ? `${stem} (${n})` : stem,
-  win32: (stem, n) => n > 1 ? `${stem} (${n})` : stem,
-  windows: (stem, n) => format.win32(stem, n),
-  linux(stem, n) {
-    if (n === 0) return stem;
-    if (n === 1) return `${stem} (copy)`;
-    if (n === 2) return `${stem} (another copy)`;
-    return `${stem} (${toOrdinal(n)} copy)`;
-  }
-};
-
-/**
- * The main export is a function that adds a trailing increment to
- * the `stem` (basename without extension) of the given file path or object.
- * ```js
- * console.log(increment('foo/bar.txt', { platform: 'darwin' }));
- * //=> foo/bar copy.txt
- * console.log(increment('foo/bar.txt', { platform: 'linux' }));
- * //=> foo/bar (copy).txt
- * console.log(increment('foo/bar.txt', { platform: 'win32' }));
- * //=> foo/bar (2).txt
- * ```
- * @name increment
- * @param {String|Object} `file` If the file is an object, it must have a `path` property.
- * @param {Object} `options` See [available options](#options).
- * @return {String|Object} Returns a file of the same type that was given, with an increment added to the file name.
- * @api public
- */
-
-const increment$1 = (...args) => {
-  return typeof args[0] === 'string' ? increment$1.path(...args) : increment$1.file(...args);
-};
-
-/**
- * Add a trailing increment to the given `filepath`.
- *
- * ```js
- * console.log(increment.path('foo/bar.txt', { platform: 'darwin' }));
- * //=> foo/bar copy.txt
- * console.log(increment.path('foo/bar.txt', { platform: 'linux' }));
- * //=> foo/bar (copy).txt
- * console.log(increment.path('foo/bar.txt', { platform: 'win32' }));
- * //=> foo/bar (2).txt
- * ```
- * @name .path
- * @param {String} `filepath`
- * @param {Object} `options` See [available options](#options).
- * @return {String}
- * @api public
- */
-
-increment$1.path = (filepath, options = {}) => {
-  return path$1.format(increment$1.file(path$1.parse(filepath), options));
-};
-
-/**
- * Add a trailing increment to the `file.base` of the given file object.
- *
- * ```js
- * console.log(increment.file({ path: 'foo/bar.txt' }, { platform: 'darwin' }));
- * //=> { path: 'foo/bar copy.txt', base: 'bar copy.txt' }
- * console.log(increment.file({ path: 'foo/bar.txt' }, { platform: 'linux' }));
- * //=> { path: 'foo/bar (copy).txt', base: 'bar (copy).txt' }
- * console.log(increment.file({ path: 'foo/bar.txt' }, { platform: 'win32' }));
- * //=> { path: 'foo/bar (2).txt', base: 'bar (2).txt' }
- * ```
- * @name .file
- * @param {String|Object} `file` If passed as a string, the path will be parsed to create an object using `path.parse()`.
- * @param {Object} `options` See [available options](#options).
- * @return {Object} Returns an object.
- * @api public
- */
-
-increment$1.file = (file, options = {}) => {
-  if (typeof file === 'string') {
-    let temp = file;
-    file = path$1.parse(file);
-    file.path = temp;
-  }
-  file = {
-    ...file
-  };
-  if (file.path && Object.keys(file).length === 1) {
-    let temp = file.path;
-    file = path$1.parse(file.path);
-    file.path = temp;
-  }
-  if (file.dirname && !file.dir) file.dir = file.dirname;
-  if (file.basename && !file.base) file.base = file.basename;
-  if (file.extname && !file.ext) file.ext = file.extname;
-  if (file.stem && !file.name) file.name = file.stem;
-  let {
-    start = 1,
-    platform = process.platform
-  } = options;
-  let fn = options.increment || format[platform] || format.default;
-  if (start === 1 && (platform === 'win32' || platform === 'windows')) {
-    if (!options.increment) {
-      start++;
+function createFolderStructure(location, structure) {
+    const keys = Object.keys(structure);
+    for (const key of keys) {
+        sync(`${location}/${key}`);
+        if (structure[key]) {
+            createFolderStructure(`${location}/${key}`, structure[key]);
+        }
     }
-  }
-  if (options.strip === true) {
-    file.name = strip.increment(file.name, options);
-    file.dir = strip.increment(file.dir, options);
-    file.base = file.name + file.ext;
-  }
-  if (options.fs === true) {
-    let name = file.name;
-    let dest = path$1.format(file);
-    while (fs$1.existsSync(dest)) {
-      file.base = fn(name, start++) + file.ext;
-      dest = path$1.format(file);
-    }
-  } else {
-    file.base = fn(file.name, start) + file.ext;
-  }
-  file.path = path$1.join(file.dir, file.base);
-  return file;
-};
+}
 
-/**
- * Returns an ordinal-suffix for the given number. This is used
- * when creating increments for files on Linux.
- *
- * ```js
- * const { ordinal } = require('add-filename-increment');
- * console.log(ordinal(1)); //=> 'st'
- * console.log(ordinal(2)); //=> 'nd'
- * console.log(ordinal(3)); //=> 'rd'
- * console.log(ordinal(110)); //=> 'th'
- * ```
- * @name .ordinal
- * @param {Number} `num`
- * @return {String}
- * @api public
- */
+function createTsConfig(location, config) {
+    const tsConfig = JSON.stringify(config, null, 2);
+    write_1.sync(`${location}/tsconfig.json`, tsConfig);
+}
 
-increment$1.ordinal = ordinal;
-
-/**
- * Returns an ordinal for the given number.
- *
- * ```js
- * const { toOrdinal } = require('add-filename-increment');
- * console.log(toOrdinal(1)); //=> '1st'
- * console.log(toOrdinal(2)); //=> '2nd'
- * console.log(toOrdinal(3)); //=> '3rd'
- * console.log(toOrdinal(110)); //=> '110th'
- * ```
- * @name .toOrdinal
- * @param {Number} `num`
- * @return {String}
- * @api public
- */
-
-increment$1.toOrdinal = toOrdinal;
-var addFilenameIncrement = increment$1;
-
-const fs = require$$0__default["default"];
-const path = require$$1__default["default"];
-const increment = addFilenameIncrement;
-
-/**
- * Asynchronously writes data to a file, replacing the file if it already
- * exists and creating any intermediate directories if they don't already
- * exist. Data can be a string or a buffer. Returns a promise if a callback
- * function is not passed.
- *
- * ```js
- * const write = require('write');
- *
- * // async/await
- * (async () => {
- *   await write('foo.txt', 'This is content...');
- * })();
- *
- * // promise
- * write('foo.txt', 'This is content...')
- *   .then(() => {
- *     // do stuff
- *   });
- *
- * // callback
- * write('foo.txt', 'This is content...', err => {
- *   // do stuff with err
- * });
- * ```
- * @name write
- * @param {String} `filepath` file path.
- * @param {String|Buffer|Uint8Array} `data` Data to write.
- * @param {Object} `options` Options to pass to [fs.writeFile][writefile]
- * @param {Function} `callback` (optional) If no callback is provided, a promise is returned.
- * @returns {Object} Returns an object with the `path` and `contents` of the file that was written to the file system. This is useful for debugging when `options.increment` is used and the path might have been modified.
- * @api public
- */
-
-const write = (filepath, data, options, callback) => {
-  if (typeof options === 'function') {
-    callback = options;
-    options = {};
-  }
-  const opts = {
-    encoding: 'utf8',
-    ...options
-  };
-  const destpath = opts.increment ? incrementName(filepath, options) : filepath;
-  const result = {
-    path: destpath,
-    data
-  };
-  if (opts.overwrite === false && exists(filepath, destpath)) {
-    throw new Error('File already exists: ' + destpath);
-  }
-  const promise = mkdir(path.dirname(destpath), {
-    recursive: true,
-    ...options
-  }).then(() => {
-    return new Promise((resolve, reject) => {
-      fs.createWriteStream(destpath, opts).on('error', err => reject(err)).on('close', resolve).end(ensureNewline(data, opts));
-    });
-  });
-  if (typeof callback === 'function') {
-    promise.then(() => callback(null, result)).catch(callback);
-    return;
-  }
-  return promise.then(() => result);
-};
-
-/**
- * The synchronous version of [write](#write). Returns undefined.
- *
- * ```js
- * const write = require('write');
- * write.sync('foo.txt', 'This is content...');
- * ```
- * @name .sync
- * @param {String} `filepath` file path.
- * @param {String|Buffer|Uint8Array} `data` Data to write.
- * @param {Object} `options` Options to pass to [fs.writeFileSync][writefilesync]
- * @returns {Object} Returns an object with the `path` and `contents` of the file that was written to the file system. This is useful for debugging when `options.increment` is used and the path might have been modified.
- * @api public
- */
-
-write.sync = (filepath, data, options) => {
-  if (typeof filepath !== 'string') {
-    throw new TypeError('expected filepath to be a string');
-  }
-  const opts = {
-    encoding: 'utf8',
-    ...options
-  };
-  const destpath = opts.increment ? incrementName(filepath, options) : filepath;
-  if (opts.overwrite === false && exists(filepath, destpath)) {
-    throw new Error('File already exists: ' + destpath);
-  }
-  mkdirSync(path.dirname(destpath), {
-    recursive: true,
-    ...options
-  });
-  fs.writeFileSync(destpath, ensureNewline(data, opts), opts);
-  return {
-    path: destpath,
-    data
-  };
-};
-
-/**
- * Returns a new [WriteStream][writestream] object. Uses `fs.createWriteStream`
- * to write data to a file, replacing the file if it already exists and creating
- * any intermediate directories if they don't already exist. Data can be a string
- * or a buffer.
- *
- * ```js
- * const fs = require('fs');
- * const write = require('write');
- * fs.createReadStream('README.md')
- *   .pipe(write.stream('a/b/c/other-file.md'))
- *   .on('close', () => {
- *     // do stuff
- *   });
- * ```
- * @name .stream
- * @param {String} `filepath` file path.
- * @param {Object} `options` Options to pass to [fs.createWriteStream][wsoptions]
- * @return {Stream} Returns a new [WriteStream][writestream] object. (See [Writable Stream][writable]).
- * @api public
- */
-
-write.stream = (filepath, options) => {
-  if (typeof filepath !== 'string') {
-    throw new TypeError('expected filepath to be a string');
-  }
-  const opts = {
-    encoding: 'utf8',
-    ...options
-  };
-  const destpath = opts.increment ? incrementName(filepath, options) : filepath;
-  if (opts.overwrite === false && exists(filepath, destpath)) {
-    throw new Error('File already exists: ' + filepath);
-  }
-  mkdirSync(path.dirname(destpath), {
-    recursive: true,
-    ...options
-  });
-  return fs.createWriteStream(destpath, opts);
-};
-
-/**
- * Increment the filename if the file already exists and enabled by the user
- */
-
-const incrementName = (destpath, options = {}) => {
-  if (options.increment === true) options.increment = void 0;
-  return increment(destpath, options);
-};
-
-/**
- * Ensure newline at EOF if defined on options
- */
-
-const ensureNewline = (data, options) => {
-  if (!options || options.newline !== true) return data;
-  if (typeof data !== 'string' && !isBuffer(data)) {
-    return data;
-  }
-
-  // Only call `.toString()` on the last character. This way,
-  // if data is a buffer, we don't need to stringify the entire
-  // buffer just to append a newline.
-  if (String(data.slice(-1)) !== '\n') {
-    if (typeof data === 'string') {
-      return data + '\n';
-    }
-    return data.concat(Buffer.from('\n'));
-  }
-  return data;
-};
-
-// if filepath !== destpath, that means the user has enabled
-// "increment", which has already checked the file system and
-// renamed the file to avoid conflicts, so we don't need to
-// check again.
-const exists = (filepath, destpath) => {
-  return filepath === destpath && fs.existsSync(filepath);
-};
-const mkdir = (dirname, options) => {
-  return new Promise(resolve => fs.mkdir(dirname, options, () => resolve()));
-};
-const mkdirSync = (dirname, options) => {
-  try {
-    fs.mkdirSync(dirname, options);
-  } catch (err) {/* do nothing */}
-};
-const isBuffer = data => {
-  if (data.constructor && typeof data.constructor.isBuffer === 'function') {
-    return data.constructor.isBuffer(data);
-  }
-  return false;
-};
-
-/**
- * Expose `write`
- */
-
-var write_1 = write;
+function createFile(location, name, content) {
+    write_1.sync(`${location}/${name}`, content);
+}
 
 async function next(location) {
-    sync(location);
-    write_1.sync(`${location}/pages/index.tsx`, indexFile);
-    write_1.sync(`${location}/pages/_app.tsx`, appFile);
-    sync(`${location}/public`);
-    write_1.sync(`${location}/src/styles/globals.scss`, defaultCss);
-    sync(`${location}/src/components`);
-    sync(`${location}/src/hooks`);
-    sync(`${location}/src/types`);
-    sync(`${location}/src/contexts`);
-    write_1.sync(`${location}/.eslintrc.json`, eslint);
-    write_1.sync(`${location}/.gitignore`, gitIgnore);
-    write_1.sync(`${location}/next-env.d.ts`, nextEnv);
-    write_1.sync(`${location}/next.config.js`, nextConfig);
-    write_1.sync(`${location}/package.json`, packageJson);
-    write_1.sync(`${location}/tsconfig.json`, tsConfig);
-    write_1.sync(`${location}/README.md`, readme);
+    createFolderStructure(location, {
+        "src": {
+            "components": {},
+            "hooks": {},
+            "contexts": {},
+            "styles": {},
+            "types": {}
+        },
+        "public": {},
+        "pages": {}
+    });
+    createPackageJson(location, "next-app", {
+        "next": "12.1.6",
+        "react": "18.1.0",
+        "react-dom": "18.1.0",
+        "sass": "^1.52.2",
+    }, {
+        "@types/node": "^17.0.40",
+        "@types/react": "18.0.9",
+        "@types/react-dom": "18.0.3",
+        "eslint": "8.15.0",
+        "eslint-config-next": "12.1.6",
+        "eslint-config-prettier": "^8.5.0",
+        "typescript": "4.6.4"
+    }, {
+        dev: "next dev",
+        build: "next build",
+        start: "next start",
+    });
+    createTsConfig(location, {
+        "compilerOptions": {
+            "target": "es5",
+            "lib": ["dom", "dom.iterable", "esnext"],
+            "allowJs": true,
+            "skipLibCheck": true,
+            "strict": true,
+            "forceConsistentCasingInFileNames": true,
+            "noEmit": true,
+            "esModuleInterop": true,
+            "module": "esnext",
+            "moduleResolution": "node",
+            "resolveJsonModule": true,
+            "isolatedModules": true,
+            "jsx": "preserve",
+            "incremental": true
+        },
+        "include": ["next-env.d.ts", "**/*.ts*"],
+        "exclude": ["node_modules"]
+    });
+    createFile(`${location}/pages`, "index.tsx", `export default function Home() {
+    return <>hello world</>
+  }
+  `);
+    createFile(`${location}/pages`, "_app.tsx", `import '../styles/globals.scss'
+  import type { AppProps } from 'next/app'
+  
+  export default function App({ Component, pageProps }: AppProps) {
+    return <Component {...pageProps} />
+  }
+  `);
+    createFile(`${location}`, "README.md", `his project was bootstrapped with create-julien-app`);
+    createFile(`${location}`, "next.config.js", `/** @type {import('next').NextConfig} */
+  const nextConfig = {
+    reactStrictMode: true,
+    swcMinify: true,
+  }
+  
+  module.exports = nextConfig
+  `);
+    createFile(`${location}/src/styles`, "globals.scss", `html,
+  body {
+    padding: 0;
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen,
+      Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
+  }
+  
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+  
+  * {
+    box-sizing: border-box;
+  }
+  
+  @media (prefers-color-scheme: dark) {
+    html {
+      color-scheme: dark;
+    }
+    body {
+      color: white;
+      background: black;
+    }
+  }
+  `);
+    createFile(`${location}`, "next-env.d.ts", `/// <reference types="next" />
+  /// <reference types="next/image-types/global" />
+  
+  // NOTE: This file should not be edited
+  // see https://nextjs.org/docs/basic-features/typescript for more information.
+  `);
+    createFile(`${location}`, ".gitignore", `# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+  # dependencies
+  /node_modules
+  /.pnp
+  .pnp.js
+  
+  # testing
+  /coverage
+  
+  # next.js
+  /.next/
+  /out/
+  
+  # production
+  /build
+  
+  # misc
+  .DS_Store
+  *.pem
+  
+  # debug
+  npm-debug.log*
+  yarn-debug.log*
+  yarn-error.log*
+  .pnpm-debug.log*
+  
+  # local env files
+  .env*.local
+  
+  # vercel
+  .vercel
+  
+  # typescript
+  *.tsbuildinfo
+  next-env.d.ts
+  `);
+    createFile(`${location}`, ".eslintrc.json", `{
+    "extends": "next/core-web-vitals"
+  }
+  `);
     require$$1$4.execSync("npm i", { stdio: 'inherit', cwd: location });
 }
-const readme = `this project was bootstrapped with create-julien-app`;
-const tsConfig = `{
-  "compilerOptions": {
-    "target": "es5",
-    "lib": ["dom", "dom.iterable", "esnext"],
-    "allowJs": true,
-    "skipLibCheck": true,
-    "strict": true,
-    "forceConsistentCasingInFileNames": true,
-    "noEmit": true,
-    "esModuleInterop": true,
-    "module": "esnext",
-    "moduleResolution": "node",
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "jsx": "preserve",
-    "incremental": true
-  },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx"],
-  "exclude": ["node_modules"]
-}
-`;
-const packageJson = `{
-  "name": "test",
-  "version": "0.1.0",
-  "private": true,
-  "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "next lint"
-  },
-  "dependencies": {
-    "next": "13.0.5",
-    "react": "18.2.0",
-    "react-dom": "18.2.0"
-  },
-  "devDependencies": {
-    "eslint": "8.28.0",
-    "eslint-config-next": "13.0.5",
-    "@types/node": "18.11.9",
-    "@types/react": "18.0.25",
-    "@types/react-dom": "18.0.9",
-    "sass": "^1.52.2",
-    "typescript": "4.9.3"
-  }
-}`;
-const nextConfig = `/** @type {import('next').NextConfig} */
-const nextConfig = {
-  reactStrictMode: true,
-  swcMinify: true,
-}
-
-module.exports = nextConfig`;
-const nextEnv = `/// <reference types="next" />
-/// <reference types="next/image-types/global" />
-
-// NOTE: This file should not be edited
-// see https://nextjs.org/docs/basic-features/typescript for more information.
-`;
-const gitIgnore = `# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
-
-# dependencies
-/node_modules
-/.pnp
-.pnp.js
-
-# testing
-/coverage
-
-# next.js
-/.next/
-/out/
-
-# production
-/build
-
-# misc
-.DS_Store
-*.pem
-
-# debug
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-.pnpm-debug.log*
-
-# local env files
-.env*.local
-
-# vercel
-.vercel
-
-# typescript
-*.tsbuildinfo
-next-env.d.ts
-`;
-const eslint = `{
-  "extends": "next/core-web-vitals"
-}`;
-const defaultCss = `html,
-body {
-  padding: 0;
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen,
-    Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
-}
-
-a {
-  color: inherit;
-  text-decoration: none;
-}
-
-* {
-  box-sizing: border-box;
-}
-
-@media (prefers-color-scheme: dark) {
-  html {
-    color-scheme: dark;
-  }
-  body {
-    color: white;
-    background: black;
-  }
-}
-`;
-const indexFile = `export default function Home() {
-  return <>hello world</>
-}
-`;
-const appFile = `import '../styles/globals.scss'
-import type { AppProps } from 'next/app'
-
-export default function App({ Component, pageProps }: AppProps) {
-  return <Component {...pageProps} />
-}
-`;
 
 async function backendHandler() {
     const backEnd = await inquirer.prompt({

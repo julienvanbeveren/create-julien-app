@@ -2,171 +2,156 @@ import { execSync } from "child_process"
 import makeDir, { sync as makeDirSync } from "make-dir"
 import { deleteSync } from "del"
 import write from "write"
+import { createPackageJson } from "../../files/packageJson"
+import { createFolderStructure } from "../../helpers/createFolderStructure"
+import { createTsConfig } from "../../files/tsConfig"
+import { createFile } from "../../files/file"
 
 export async function next(location: string) {
-  makeDirSync(location)
-  write.sync(`${location}/pages/index.tsx`, indexFile)
-  write.sync(`${location}/pages/_app.tsx`, appFile)
-  makeDirSync(`${location}/public`)
-  write.sync(`${location}/src/styles/globals.scss`, defaultCss)
-  makeDirSync(`${location}/src/components`)
-  makeDirSync(`${location}/src/hooks`)
-  makeDirSync(`${location}/src/types`)
-  makeDirSync(`${location}/src/contexts`)
-  write.sync(`${location}/.eslintrc.json`, eslint)
-  write.sync(`${location}/.gitignore`, gitIgnore)
-  write.sync(`${location}/next-env.d.ts`, nextEnv)
-  write.sync(`${location}/next.config.js`, nextConfig)
-  write.sync(`${location}/package.json`, packageJson)
-  write.sync(`${location}/tsconfig.json`, tsConfig)
-  write.sync(`${location}/README.md`, readme)
+
+  createFolderStructure(location, {
+    "src": {
+      "components": {},
+      "hooks": {},
+      "contexts": {},
+      "styles": {},
+      "types": {}
+    },
+    "public": {},
+    "pages": {}
+  })
+  createPackageJson(location, "next-app", 
+  { 
+    "next": "12.1.6",
+    "react": "18.1.0",
+    "react-dom": "18.1.0",
+    "sass": "^1.52.2", 
+  }, {
+    "@types/node": "^17.0.40",
+    "@types/react": "18.0.9",
+    "@types/react-dom": "18.0.3",
+    "eslint": "8.15.0",
+    "eslint-config-next": "12.1.6",
+    "eslint-config-prettier": "^8.5.0",
+    "typescript": "4.6.4"
+  }, {
+    dev: "next dev",
+    build: "next build",
+    start: "next start",
+  })
+  createTsConfig(location, {
+    "compilerOptions": {
+      "target": "es5",
+      "lib": ["dom", "dom.iterable", "esnext"],
+      "allowJs": true,
+      "skipLibCheck": true,
+      "strict": true,
+      "forceConsistentCasingInFileNames": true,
+      "noEmit": true,
+      "esModuleInterop": true,
+      "module": "esnext",
+      "moduleResolution": "node",
+      "resolveJsonModule": true,
+      "isolatedModules": true,
+      "jsx": "preserve",
+      "incremental": true
+    },
+    "include": ["next-env.d.ts", "**/*.ts*"],
+    "exclude": ["node_modules"]
+  })
+  createFile(`${location}/pages`, "index.tsx", `export default function Home() {
+    return <>hello world</>
+  }
+  `)
+  createFile(`${location}/pages`, "_app.tsx", `import '../styles/globals.scss'
+  import type { AppProps } from 'next/app'
+  
+  export default function App({ Component, pageProps }: AppProps) {
+    return <Component {...pageProps} />
+  }
+  `)
+  createFile(`${location}`, "README.md", `his project was bootstrapped with create-julien-app`)
+  createFile(`${location}`, "next.config.js", `/** @type {import('next').NextConfig} */
+  const nextConfig = {
+    reactStrictMode: true,
+    swcMinify: true,
+  }
+  
+  module.exports = nextConfig
+  `)
+  createFile(`${location}/src/styles`, "globals.scss", `html,
+  body {
+    padding: 0;
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen,
+      Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
+  }
+  
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+  
+  * {
+    box-sizing: border-box;
+  }
+  
+  @media (prefers-color-scheme: dark) {
+    html {
+      color-scheme: dark;
+    }
+    body {
+      color: white;
+      background: black;
+    }
+  }
+  `)
+  createFile(`${location}`, "next-env.d.ts", `/// <reference types="next" />
+  /// <reference types="next/image-types/global" />
+  
+  // NOTE: This file should not be edited
+  // see https://nextjs.org/docs/basic-features/typescript for more information.
+  `)
+  createFile(`${location}`, ".gitignore", `# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+  # dependencies
+  /node_modules
+  /.pnp
+  .pnp.js
+  
+  # testing
+  /coverage
+  
+  # next.js
+  /.next/
+  /out/
+  
+  # production
+  /build
+  
+  # misc
+  .DS_Store
+  *.pem
+  
+  # debug
+  npm-debug.log*
+  yarn-debug.log*
+  yarn-error.log*
+  .pnpm-debug.log*
+  
+  # local env files
+  .env*.local
+  
+  # vercel
+  .vercel
+  
+  # typescript
+  *.tsbuildinfo
+  next-env.d.ts
+  `)
+  createFile(`${location}`, ".eslintrc.json", `{
+    "extends": "next/core-web-vitals"
+  }
+  `)
   execSync("npm i", { stdio: 'inherit', cwd: location })
 }
-
-const readme = `this project was bootstrapped with create-julien-app`
-
-const tsConfig = `{
-  "compilerOptions": {
-    "target": "es5",
-    "lib": ["dom", "dom.iterable", "esnext"],
-    "allowJs": true,
-    "skipLibCheck": true,
-    "strict": true,
-    "forceConsistentCasingInFileNames": true,
-    "noEmit": true,
-    "esModuleInterop": true,
-    "module": "esnext",
-    "moduleResolution": "node",
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "jsx": "preserve",
-    "incremental": true
-  },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx"],
-  "exclude": ["node_modules"]
-}
-`
-
-const packageJson = `{
-  "name": "test",
-  "version": "0.1.0",
-  "private": true,
-  "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "next lint"
-  },
-  "dependencies": {
-    "next": "13.0.5",
-    "react": "18.2.0",
-    "react-dom": "18.2.0"
-  },
-  "devDependencies": {
-    "eslint": "8.28.0",
-    "eslint-config-next": "13.0.5",
-    "@types/node": "18.11.9",
-    "@types/react": "18.0.25",
-    "@types/react-dom": "18.0.9",
-    "sass": "^1.52.2",
-    "typescript": "4.9.3"
-  }
-}`
-
-const nextConfig = `/** @type {import('next').NextConfig} */
-const nextConfig = {
-  reactStrictMode: true,
-  swcMinify: true,
-}
-
-module.exports = nextConfig`
-
-const nextEnv = `/// <reference types="next" />
-/// <reference types="next/image-types/global" />
-
-// NOTE: This file should not be edited
-// see https://nextjs.org/docs/basic-features/typescript for more information.
-`
-
-const gitIgnore = `# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
-
-# dependencies
-/node_modules
-/.pnp
-.pnp.js
-
-# testing
-/coverage
-
-# next.js
-/.next/
-/out/
-
-# production
-/build
-
-# misc
-.DS_Store
-*.pem
-
-# debug
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-.pnpm-debug.log*
-
-# local env files
-.env*.local
-
-# vercel
-.vercel
-
-# typescript
-*.tsbuildinfo
-next-env.d.ts
-`
-
-const eslint = `{
-  "extends": "next/core-web-vitals"
-}`
-
-const defaultCss = `html,
-body {
-  padding: 0;
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen,
-    Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
-}
-
-a {
-  color: inherit;
-  text-decoration: none;
-}
-
-* {
-  box-sizing: border-box;
-}
-
-@media (prefers-color-scheme: dark) {
-  html {
-    color-scheme: dark;
-  }
-  body {
-    color: white;
-    background: black;
-  }
-}
-`
-
-const indexFile = `export default function Home() {
-  return <>hello world</>
-}
-`
-
-const appFile = `import '../styles/globals.scss'
-import type { AppProps } from 'next/app'
-
-export default function App({ Component, pageProps }: AppProps) {
-  return <Component {...pageProps} />
-}
-`
