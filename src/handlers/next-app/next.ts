@@ -63,7 +63,7 @@ export async function next(location: string) {
     return <>hello world</>
   }
   `)
-  createFile(`${location}/pages`, "_app.tsx", `import '../styles/globals.scss'
+  createFile(`${location}/pages`, "_app.tsx", `import '../src/styles/globals.scss'
   import type { AppProps } from 'next/app'
   
   export default function App({ Component, pageProps }: AppProps) {
@@ -153,5 +153,6 @@ export async function next(location: string) {
     "extends": "next/core-web-vitals"
   }
   `)
+  createFile(`${location}`, ".env.local", "")
   execSync("npm i", { stdio: 'inherit', cwd: location })
 }
