@@ -33,7 +33,7 @@ async function main() {
     switch (argv["_"]?.[0]) {
       case "context":
         // @ts-ignore
-        createContext(argv?.location || getLocation())
+        createContext(argv?.location || await getLocation())
     }
   }
 
